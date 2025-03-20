@@ -1,5 +1,7 @@
 use petname::Generator;
-use rand::{distr::Alphanumeric, Rng};
+use rand::{distr::Alphanumeric, distr::slice::Choose, Rng};
+
+const INVISIBLE_CHARACTERS: [char; 6] = ['‌', '‍', '⁡', '⁢', '⁣', '⁤'];
 
 /// Random URL configuration.
 #[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
@@ -37,6 +39,10 @@ impl RandomURLConfig {
                 .take(self.length.unwrap_or(8))
                 .map(char::from)
                 .collect::<String>(),
+            RandomURLType::Cloak => rand::thread_rng()
+                    .sample_iter(Choose::new(&INVISIBLE_CHARACTERS).unwrap())
+                    .take(self.length.unwrap_or(8))
+                    .collect::<String>(),
         })
     }
 }
@@ -49,6 +55,8 @@ pub enum RandomURLType {
     PetName,
     /// Generate a random alphanumeric string.
     Alphanumeric,
+    /// Generate a random unicode invisible string.
+    Cloak,
 }
 
 impl Default for RandomURLType {
